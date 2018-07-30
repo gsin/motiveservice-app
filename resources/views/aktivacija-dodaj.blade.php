@@ -34,7 +34,7 @@
 		<input value="{{old('sifra')}}" class="input-control" name="sifra" id="sifra" placeholder="SLP" />	   
 		<label class="select-label right-inline">Veljavnost mesecev</label>	 	 
   		<select class="form-control" id="veljavnost_mesecev" name="veljavnost_mesecev" style="flex: 2">
-  			<option value="">0</option>
+  			<option value="0"></option>
 		    <option value="6">6</option>
 		    <option value="12">12</option>
 		    <option value="24">24</option>
