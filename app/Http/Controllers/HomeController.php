@@ -46,13 +46,7 @@ class HomeController extends Controller
             $oznaka_jamstva = substr($o, 0, strpos($o, ' ('));
             $tip_jamstva = trim(substr($o, strpos($o, '(')+1, strlen(substr($o, strpos($o, '(')+1)) -1));
 
-            if ($userId == 1) {
-                //dd($oznaka_jamstva);
-                //if ($tip_jamstva == "999814 SLI") {
-                //        
-                //}    
-            }
-
+           
 
             foreach ($oznake_aktivirane as $a) { 
                 if ($oznaka_jamstva == $a->oznaka_jamstva) {
@@ -66,37 +60,15 @@ class HomeController extends Controller
 
         }
 
-        
-        //dd($oznakePrikaz);        
-
-        //$oznake = array();
-        /*
-        if (Auth::user()->isAdmin())  
-        {
-            
-            $aktivacije = KarticaVozila::limit(10)->get()->sortByDesc("id");    
-        }
-        else
-        {
-            $aktivacije = KarticaVozila::limit(10)->where('sifra_avtohise', Auth::user()->sifra_avtohise)->sortByDesc("id")->get();
-        }
-        */
-
-        //return view('aktivacija', [ "aktivacije" => $aktivacije ]);
-
         $optima_care_visible = true;
-        /*switch ($sifraAvtohise) {
-            case '136':
-            case '10255':
-            case '543':
-            case '579': 
-                $optima_care_visible = true;
-                break;                        
-        }*/
-
-
-        return view('home', [ "oznake" => $oznake, "optima_care_visible" => $optima_care_visible ]);
-        //return view('home', [ "aktivacije" => $aktivacije ]);
+        
+        if ($userId == 1 || $userId == 5 || $userId == 18 ) {
+            return view('home-new', [ "oznake" => $oznake, "optima_care_visible" => $optima_care_visible ]);
+        }
+        else {
+            return view('home', [ "oznake" => $oznake, "optima_care_visible" => $optima_care_visible ]);
+        }
+ 
     }
 
     public function getPredzakupljeneWS($sifra_avtohise)
