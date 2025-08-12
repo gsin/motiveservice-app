@@ -3,10 +3,13 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class KarticaVozila extends Model
 {
     //
+    //use SoftDeletes;
+
     protected $table = 'sv_kartice_vozil';
     protected $fillable = ['tip_jamstva', 'veljavnost_mesecev', 'dodatek_avt_menj',
     					   'dodatek_km', 'sifra_avtohise', 'soglasje_1',
@@ -18,7 +21,7 @@ class KarticaVozila extends Model
 						   'moc_motorja', 'tip_motorja', 'datum_prve_reg',
 						   'km', 'ccm', 'gorivo',
 						   'pogon', 'menjalnik', 'komercialno_vozilo',
-						   'datum_predaje', 'datum_jamstvo_od', 'userId', 'sifra', 'id_znamke'];
+						   'datum_predaje','datum_podpisa', 'datum_jamstvo_od', 'userId', 'sifra', 'id_znamke', 'oznaka_jamstva', 'id', 'opomba'];
 
  	public function jamstvo()
     {
@@ -38,5 +41,16 @@ class KarticaVozila extends Model
     public function user()
     {
         return $this->hasOne('App\User', 'id', 'userId');
+    }
+
+    public function status_akt()
+    {
+        return $this->hasOne('App\Status', 'id', 'status');
+    }
+
+    public function getCreatedAtFmtAttribute (){
+
+        $carbon = new Carbon($this->created_at);
+        return $carbon->format('d.m.Y');    
     }
 }

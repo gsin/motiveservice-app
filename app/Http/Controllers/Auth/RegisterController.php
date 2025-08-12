@@ -70,7 +70,9 @@ class RegisterController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
-            'sifra_avtohise' => $data['sifra_avtohise']        
+            'sifra_avtohise' => $data['sifra_avtohise'],        
+            'api_token' => $data['api_token'],
+            'komercialist' => $data['komercialist']
         ]);
     }
 

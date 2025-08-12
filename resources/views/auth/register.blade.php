@@ -50,6 +50,36 @@
                                         <strong>{{ $errors->first('sifra_avtohise') }}</strong>
                                     </span>
                                 @endif
+                            </div>                        
+                        </div>
+
+                        <div class="form-group{{ $errors->has('komercialist') ? ' has-error' : '' }}">
+                            <label for="name" class="col-md-4 control-label">Komercialist</label>
+
+                            <div class="col-md-6">                                
+                                <select name="komercialist" id="komercialist"class="form-control">
+                                    <option value="0" selected>NE</option>
+                                    <option value="1">DA</option>
+                                </select>    
+                                @if ($errors->has('komercialist'))
+                                    <span class="help-block">
+                                        <strong>{{ $errors->first('komercialist') }}</strong>
+                                    </span>
+                                @endif
+                            </div>
+
+                            
+                        </div>
+                        <div class="form-group{{ $errors->has('api_token') ? ' has-error' : '' }}">
+                            <label for="name" class="col-md-4 control-label">API Token</label>
+                            <div class="col-md-6">
+                                <input id="api_token" type="text" class="form-control" name="api_token" value="{{ old('api_token', uniqid()) }}" required autofocus>
+
+                                @if ($errors->has('api_token'))
+                                    <span class="help-block">
+                                        <strong>{{ $errors->first('api_token') }}</strong>
+                                    </span>
+                                @endif
                             </div>
                         </div>
 

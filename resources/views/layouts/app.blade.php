@@ -14,11 +14,13 @@
     <link href="{{ asset('css/jquery-ui.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="{{ asset('css/custom.css') }}">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
 
-     <script src="{{ asset('js/jquery.js') }}"></script>
-    <script src="{{ asset('js/jquery-ui.min.js') }}"></script>
-    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
-
+     <script src="{{ asset('js/jquery.js') }}" defer=""></script>
+    <script src="{{ asset('js/jquery-ui.min.js') }}" defer=""></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js" defer=""></script>
 </head>
 <body>
     <div id="app">
@@ -89,7 +91,7 @@
     <!-- Scripts -->
 
     <script src="{{ asset('js/app.js') }}"></script>
- 
+   
 
 </body>
 </html>

@@ -78,10 +78,10 @@ return [
     'required_without_all' => 'The :attribute field is required when none of :values are present.',
     'same'                 => 'The :attribute and :other must match.',
     'size'                 => [
-        'numeric' => 'The :attribute must be :size.',
+        'numeric' => ':attribute mora vsebovati :size znakov.',
         'file'    => 'The :attribute must be :size kilobytes.',
-        'string'  => 'The :attribute must be :size characters.',
-        'array'   => 'The :attribute must contain :size items.',
+        'string'  => ':attribute mora vsebovati :size znakov!',
+        'array'   => 'The :attribute mora vsebovati :size znakov.',
     ],
     'string'               => 'The :attribute must be a string.',
     'timezone'             => 'The :attribute must be a valid zone.',

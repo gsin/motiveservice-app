@@ -15,7 +15,7 @@ class User extends \TCG\Voyager\Models\User
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'sifra_avtohise'
+        'name', 'email', 'password', 'sifra_avtohise', 'api_token', 'komercialist'
     ];
 
     /**
@@ -38,5 +38,21 @@ class User extends \TCG\Voyager\Models\User
         return false;
     }
 
-  
+    public function isSuperUser()
+    {    
+        if ($this->role->name == 'superuser')
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public function isKomercialist()
+    {    
+        if ($this->komercialist == 1)
+        {
+            return true;
+        }
+        return false;
+    }  
 }
