@@ -128,11 +128,6 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         
         $k = KarticaVozila::findOrFail($id);
 
-        $dodatek_menj = true;
-        if (strpos($k->tip_jamstva, 'BASE') !== false) {
-            $dodatek_menj = false;
-        }
-
         $k->datum_prve_reg =  AktivacijaJamstvaController::convert_date_fmt($k->datum_prve_reg );         
         $k->datum_podpisa =  AktivacijaJamstvaController::convert_date_fmt($k->datum_podpisa );
         $k->datum_predaje =  AktivacijaJamstvaController::convert_date_fmt($k->datum_predaje );
@@ -141,7 +136,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         return view('aktivacija-dodaj', ['prodajalec' => $prodajalec, 'zv' => $znamkeVozil, 'prodajalci' => $prodajalci, 
                                             'tipiJamstev'=>$tipiJamstev, 'jeAdmin' => Auth::user()->isAdmin() || Auth::user()->isSuperUser(),
                                             'oznake' => $oznake, 'oznakaPredlog' => $oznakaPredlog, 'k' => $k,
-                                            'urejanje'=>true, 'dodatek_menj'=>$dodatek_menj]);
+                                            'urejanje'=>true, 'dodatek_menj'=>true]);
         
         
     }
@@ -178,10 +173,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         }    
 
 
-        $dodatek_menj = true;
-        if ($paket == 'base') {
-            $dodatek_menj = false;
-        }
+
         
         //  dd($tipiJamstev);
 
@@ -201,7 +193,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         return view('aktivacija-dodaj', ['prodajalec' => $prodajalec, 'zv' => $znamkeVozil, 'prodajalci' => $prodajalci, 
                                             'tipiJamstev'=>$tipiJamstev, 'jeAdmin' => Auth::user()->isAdmin(),
                                             'oznake' => $oznake, 'oznakaPredlog' => $oznakaPredlog,
-                                            'k' => new KarticaVozila, 'urejanje'=>false, 'dodatek_menj'=>$dodatek_menj]);
+                                            'k' => new KarticaVozila, 'urejanje'=>false, 'dodatek_menj'=>true]);
         
         
     }

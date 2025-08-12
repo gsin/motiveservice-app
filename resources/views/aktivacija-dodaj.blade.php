@@ -171,12 +171,10 @@
 	<div class="form-group">-->
 		<span style="flex: 1 1 0%;"></span>
 		
-		@if ($dodatek_menj == true)
 		<label class="right-inline" style="display: inline-block;">Avtomatski menjalnik &nbsp; DA</label>
 			{!! Form::radio('dodatek_avt_menj', 1, old("dodatek_avt_menj", $k->dodatek_avt_menj) == "1" ? "true":"false"); !!}
 			<label class="right-inline" style="display: inline-block;">NE</label>
 			{!! Form::radio('dodatek_avt_menj', 0, old("dodatek_avt_menj", $k->dodatek_avt_menj) == "0" ? "true":"false"); !!}
-		@endif
 		<span style="flex: 1 1 0%;"></span>
 		
 		<label class="right-inline" style="display: inline-block;">Neomejeni kilometri &nbsp; DA</label>
