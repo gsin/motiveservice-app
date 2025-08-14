@@ -309,6 +309,33 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
                         ->withErrors($validator)
                         ->withInput();
         }
+        
+        if ($userId == 1 || $userId == 5 || $userId == 18 ) {
+            // Validate vehicle age against warranty type maximum age
+            $tipJamstva = JamstvoTip::where('koda', $request->tip_jamstva)->first();
+            if ($tipJamstva) {
+                $datumPrveReg = Carbon::parse($request->datum_prve_reg);
+                $danes = Carbon::now();
+                $starostVozila = $danes->diffInYears($datumPrveReg);
+                
+                if ($starostVozila > $tipJamstva->starost_vozila) {
+                    return redirect('/aktivacija-nova')
+                                ->withErrors(['datum_prve_reg' => 'Vozilo presega maksimalno starost za ta tip storitve upravljanega jamstva'])
+                                ->withInput();
+                }
+            }
+
+            // Validate activation date is not older than 10 days
+            $datumAktivacije = Carbon::parse($request->datum_jamstvo_od);
+            $danes = Carbon::now();
+            $razlikaDni = $danes->diffInDays($datumAktivacije, false);
+            
+            if ($razlikaDni > 10) {
+                return redirect('/aktivacija-nova')
+                            ->withErrors(['datum_jamstvo_od' => 'Vozilo presega maksimalen čas za aktivacijo od podpisa pogodbe'])
+                            ->withInput();
+            }
+        }
 
         $k = $request->all();
 
@@ -490,6 +517,34 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
             return redirect($request->path())
                         ->withErrors($validator)
                         ->withInput();
+        }
+
+        if ($userId == 1 || $userId == 5 || $userId == 18 ) {
+
+        // Validate vehicle age against warranty type maximum age
+            $tipJamstva = JamstvoTip::where('koda', $request->tip_jamstva)->first();
+            if ($tipJamstva) {
+                $datumPrveReg = Carbon::parse($request->datum_prve_reg);
+                $danes = Carbon::now();
+                $starostVozila = $danes->diffInYears($datumPrveReg);
+                
+                if ($starostVozila > $tipJamstva->starost_vozila) {
+                    return redirect($request->path())
+                                ->withErrors(['datum_prve_reg' => 'Vozilo presega maksimalno starost za ta tip storitve upravljanega jamstva'])
+                                ->withInput();
+                }
+            }
+
+            // Validate activation date is not older than 10 days
+            $datumAktivacije = Carbon::parse($request->datum_jamstvo_od);
+            $danes = Carbon::now();
+            $razlikaDni = $danes->diffInDays($datumAktivacije, false);
+            
+            if ($razlikaDni > 10) {
+                return redirect($request->path())
+                            ->withErrors(['datum_jamstvo_od' => 'Vozilo presega maksimalen čas za aktivacijo od podpisa pogodbe'])
+                            ->withInput();
+            }
         }
 
         $k['datum_prve_reg'] = AktivacijaJamstvaController::convert_date($request->datum_prve_reg);
