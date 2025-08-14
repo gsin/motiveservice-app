@@ -164,24 +164,33 @@
 
 		{{ $jeAdmin ? '' : Form::hidden('sifra_avtohise', $prodajalec->koda)}}
 		 
-		<!--<span style="flex: 4"></span>
- 	  	<label class="right-inline">Datum podpisa</label>	 
- 	  	<input type="date" value="" class="input-control datepicker" name="datum_podpisa" id="datum_podpisa"/>-->
-	<!--</div>
-	<div class="form-group">-->
+		
+	</div>
+	<div class="form-group">
 		<span style="flex: 1 1 0%;"></span>
 		
-		<label class="right-inline" style="display: inline-block;">Avtomatski menjalnik &nbsp; DA</label>
-			{!! Form::radio('dodatek_avt_menj', 1, old("dodatek_avt_menj", $k->dodatek_avt_menj) == "1" ? "true":"false"); !!}
-			<label class="right-inline" style="display: inline-block;">NE</label>
-			{!! Form::radio('dodatek_avt_menj', 0, old("dodatek_avt_menj", $k->dodatek_avt_menj) == "0" ? "true":"false"); !!}
-		<span style="flex: 1 1 0%;"></span>
+		<label class="right-inline" style="display: inline-block;margin-bottom: 0px;">Avtomatski menjalnik &nbsp; DA</label>
+		{!! Form::radio('dodatek_avt_menj', 1, old("dodatek_avt_menj", $k->dodatek_avt_menj) == "1" ? "true":"false"); !!}
+		<label class="right-inline" style="display: inline-block;margin-bottom: 0px;">NE</label>
+		{!! Form::radio('dodatek_avt_menj', 0, old("dodatek_avt_menj", $k->dodatek_avt_menj) == "0" ? "true":"false"); !!}
 		
-		<label class="right-inline" style="display: inline-block;">Neomejeni kilometri &nbsp; DA</label>
+			<span style="flex: 1 1 0%;"></span>
+		
+		<label class="right-inline" style="display: inline-block;margin-bottom: 0px;">Kilometri (+ 25.000) &nbsp; DA</label>
 		{!! Form::radio('dodatek_km', 1, old("dodatek_km", $k->dodatek_km) == "1" ? "true":"false"); !!}
 			
-		<label class="right-inline" style="display: inline-block;">NE</label>
+		<label class="right-inline" style="display: inline-block;;margin-bottom: 0px;">NE</label>
 		{!! Form::radio('dodatek_km', 0, old("dodatek_km", $k->dodatek_km) == "0" ? "true":"false"); !!}
+
+		<span style="flex: 1 1 0%;"></span>
+		
+		<label class="right-inline" style="display: inline-block;margin-bottom: 0px;">Komercialno vozilo &nbsp; DA</label>
+		{!! Form::radio('komercialno_vozilo', 1, old("komercialno_vozilo", $k->komercialno_vozilo) == "1" ? "true":"false"); !!}
+			
+		<label class="right-inline" style="display: inline-block;margin-bottom: 0px;">NE</label>
+		{!! Form::radio('komercialno_vozilo', 0, old("komercialno_vozilo", $k->komercialno_vozilo) == "0" ? "true":"false"); !!}
+
+
  	</div>
 
 	<div class="form-group">
