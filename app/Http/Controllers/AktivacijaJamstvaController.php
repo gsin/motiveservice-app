@@ -76,15 +76,17 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         $znamkeVozil = ZnamkaVozila::orderBy('opis', 'ASC')->get();
         $prodajalec = Prodajalec::where('koda', $sifraAvtohise)->first();
         $prodajalci = Prodajalec::orderBy('naziv', 'ASC')->get();
-
-        //if ($admin) {
+        $userId = Auth::user()->id; 
+ 
+        if ($userId == 1 || $userId == 5 || $userId == 18 ) {
+            $tipiJamstev = JamstvoTip::where('koda', 'not like', "%PK%")->where('naziv', 'not like', "%SUPREMA%")->orderBy('naziv', 'ASC')->get(); 
+        }
+        else {
             $tipiJamstev = JamstvoTip::where('koda', 'not like', "%PK%")->orderBy('naziv', 'ASC')->get();
-        /*}else {
-
-            $tipiJamstev = JamstvoTip::where('koda', 'not like', "%PK%")->where('naziv', 'not like', "%CARE%")->orderBy('naziv', 'ASC')->get(); 
+        }
 
 
-        }*/
+
 
         $oznakaPredlog = AktivacijaJamstvaController::getOznaka(); 
         $oznake = AktivacijaJamstvaController::getPredzakupljeneWS($sifraAvtohise);
