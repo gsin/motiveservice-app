@@ -7,9 +7,9 @@
 <div class="container">
 
 	@if($urejanje == true)
-		<h1 class="header-vnos">Urejanje {{ $k->oznaka_jamstva}}</h1>
+		<h1 class="header-vnos">Urejanje {{ $k->oznaka_jamstva}} - V2</h1>
 	@else
-		<h1 class="header-vnos">Nova aktivacija</h1>
+		<h1 class="header-vnos">Nova aktivacija - V2</h1>
 	@endif		
 	 
 	@foreach ($errors->all() as $error)

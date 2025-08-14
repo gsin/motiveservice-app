@@ -78,8 +78,10 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         $prodajalci = Prodajalec::orderBy('naziv', 'ASC')->get();
         $userId = Auth::user()->id; 
  
+        $view_name = 'aktivacija-dodaj';
         if ($userId == 1 || $userId == 5 || $userId == 18 ) {
             $tipiJamstev = JamstvoTip::where('koda', 'not like', "%PK%")->where('naziv', 'not like', "%SUPREMA%")->orderBy('naziv', 'ASC')->get(); 
+            $view_name = 'aktivacija-dodaj-new';
         }
         else {
             $tipiJamstev = JamstvoTip::where('koda', 'not like', "%PK%")->orderBy('naziv', 'ASC')->get();
@@ -95,7 +97,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         array_unshift($oznake, $oznakaPredlog);
          
 
-        return view('aktivacija-dodaj', ['prodajalec' => $prodajalec, 'zv' => $znamkeVozil, 'prodajalci' => $prodajalci, 
+        return view($view_name, ['prodajalec' => $prodajalec, 'zv' => $znamkeVozil, 'prodajalci' => $prodajalci, 
                                             'tipiJamstev'=>$tipiJamstev, 'jeAdmin' => Auth::user()->isAdmin(),
                                             'oznake' => $oznake, 'oznakaPredlog' => $oznakaPredlog, 'k' => new KarticaVozila,
                                             'urejanje'=>false, 'dodatek_menj'=>true]);
@@ -309,7 +311,8 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
                         ->withErrors($validator)
                         ->withInput();
         }
-        
+      
+        $userId = Auth::user()->id; 
         if ($userId == 1 || $userId == 5 || $userId == 18 ) {
             // Validate vehicle age against warranty type maximum age
             $tipJamstva = JamstvoTip::where('koda', $request->tip_jamstva)->first();
@@ -519,9 +522,21 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
                         ->withInput();
         }
 
+        $userId = Auth::user()->id; 
         if ($userId == 1 || $userId == 5 || $userId == 18 ) {
 
-        // Validate vehicle age against warranty type maximum age
+            $errors = [];
+
+            // Validate activation date is not older than 10 days
+            $datumAktivacije = Carbon::parse($request->datum_jamstvo_od);
+            $danes = Carbon::now();
+            $razlikaDni = abs($danes->diffInDays($datumAktivacije, false));
+            
+            if ($razlikaDni > 10) {
+                $errors['datum_jamstvo_od'] = 'Vozilo presega maksimalen čas za aktivacijo od podpisa pogodbe (10 dni)';
+            }
+
+            // Validate vehicle age against warranty type maximum age
             $tipJamstva = JamstvoTip::where('koda', $request->tip_jamstva)->first();
             if ($tipJamstva) {
                 $datumPrveReg = Carbon::parse($request->datum_prve_reg);
@@ -529,21 +544,14 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
                 $starostVozila = $danes->diffInYears($datumPrveReg);
                 
                 if ($starostVozila > $tipJamstva->starost_vozila) {
-                    return redirect($request->path())
-                                ->withErrors(['datum_prve_reg' => 'Vozilo presega maksimalno starost za ta tip storitve upravljanega jamstva'])
-                                ->withInput();
+                    $errors['datum_prve_reg'] = 'Vozilo presega maksimalno starost za ta tip jamstva!';
                 }
             }
-
-            // Validate activation date is not older than 10 days
-            $datumAktivacije = Carbon::parse($request->datum_jamstvo_od);
-            $danes = Carbon::now();
-            $razlikaDni = $danes->diffInDays($datumAktivacije, false);
             
-            if ($razlikaDni > 10) {
+            if (count($errors) > 0) {
                 return redirect($request->path())
-                            ->withErrors(['datum_jamstvo_od' => 'Vozilo presega maksimalen čas za aktivacijo od podpisa pogodbe'])
-                            ->withInput();
+                    ->withErrors($errors)
+                    ->withInput();
             }
         }
 

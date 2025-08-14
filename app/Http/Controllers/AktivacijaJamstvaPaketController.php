@@ -69,8 +69,14 @@ class AktivacijaJamstvaPaketController extends Controller
         $oznake = AktivacijaJamstvaController::getPredzakupljeneWS($sifraAvtohise);
         array_unshift($oznake, $oznakaPredlog);
          
+        $userId = Auth::user()->id; 
+ 
+        $view_name = 'aktivacija-dodaj';
+        if ($userId == 1 || $userId == 5 || $userId == 18 ) {
+            $view_name = 'aktivacija-dodaj-new';
+        }
 
-        return view('aktivacija-dodaj', ['prodajalec' => $prodajalec, 'zv' => $znamkeVozil, 'prodajalci' => $prodajalci, 
+        return view($view_name, ['prodajalec' => $prodajalec, 'zv' => $znamkeVozil, 'prodajalci' => $prodajalci, 
                                             'tipiJamstev'=>$tipiJamstev, 'jeAdmin' => Auth::user()->isAdmin(),
                                             'oznake' => $oznake, 'oznakaPredlog' => $oznakaPredlog]);
         
@@ -91,10 +97,7 @@ class AktivacijaJamstvaPaketController extends Controller
         $oznakaPredlog = AktivacijaJamstvaController::getOznaka();
         $oznake = AktivacijaJamstvaController::getPredzakupljeneWS($sifraAvtohise);
         array_unshift($oznake, $oznakaPredlog);
-        //if (count($oznake) == 0)        
-        //{             
-        //    $oznake[] = "";$oznaka;  
-        //}
+        
          
         $oznakaPredlog = AktivacijaJamstvaController::getOznaka();
 
