@@ -48,23 +48,23 @@ class AktivacijaJamstvaController extends Controller
 
         if (Auth::user()->isAdmin())  
         {
-            $aktivacije = KarticaVozila::all()->sortByDesc("id")->take($max_rows);    
+            $aktivacije = KarticaVozila::all()->sortByDesc('id')->take($max_rows);    
         }
         elseif (Auth::user()->isSuperUser()){
-$aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDesc("id")->take($max_rows);
+$aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDesc('id')->take($max_rows);
         }
         else    
         {
-            $aktivacije = KarticaVozila::where('sifra_avtohise', Auth::user()->sifra_avtohise)->get()->sortByDesc("id")->take($max_rows);
+            $aktivacije = KarticaVozila::where('sifra_avtohise', Auth::user()->sifra_avtohise)->get()->sortByDesc('id')->take($max_rows);
         }
 
-        return view('aktivacija', [ "aktivacije" => $aktivacije ]);
+        return view('aktivacija', [ 'aktivacije' => $aktivacije ]);
     }
 
     public function show(KarticaVozila $kartica)
     {
         return $kartica;    
-        return view('aktivacija-uredi', [ "aktivacija" => $kartica]);
+        return view('aktivacija-uredi', [ 'aktivacija' => $kartica]);
     }
 
     public function create(Request $request)
@@ -177,7 +177,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         $prodajalci = Prodajalec::orderBy('naziv', 'ASC')->get();
 
         if ($paket == 'optima-care') {
-            $paket = "optima";
+            $paket = 'optima';
             $tipiJamstev = JamstvoTip::where('naziv', 'like', $paket.'%')->where('koda', 'not like', "%PK%")->where('naziv', 'like', "%CARE%")->orderBy('naziv', 'ASC')->get();       
 
         }
@@ -185,23 +185,13 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
             $tipiJamstev = JamstvoTip::where('naziv', 'like', $paket.'%')->where('koda', 'not like', "%PK%")->where('naziv', 'not like', "%CARE%")->orderBy('naziv', 'ASC')->get();       
         }    
 
-
-
-        
-        //  dd($tipiJamstev);
-
+ 
         $oznakaPredlog = AktivacijaJamstvaController::getOznaka();
 
         $oznake = AktivacijaJamstvaController::getPredzakupljeneWS($sifraAvtohise);
-        //$oznake = array();
+ 
         array_unshift($oznake, $oznakaPredlog);
-        //if (count($oznake) == 0)        
-        //{             
-        //    $oznake[] = "";$oznaka;  
-        //}
-         
-        //$oznakaPredlog = AktivacijaJamstvaController::getOznaka();
-       
+ 
 
         return view('aktivacija-dodaj', ['prodajalec' => $prodajalec, 'zv' => $znamkeVozil, 'prodajalci' => $prodajalci, 
                                             'tipiJamstev'=>$tipiJamstev, 'jeAdmin' => Auth::user()->isAdmin(),
@@ -287,7 +277,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
     public function getOznaka()
     {
          $stevec = PogodbaStevec::GetStevec();
-         return "WEB-".$stevec;
+         return 'WEB-'.$stevec;
     }
 
     /**
@@ -306,10 +296,10 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
             $datumPrveReg = Carbon::parse($request->datum_prve_reg);
             $danes = Carbon::now();
             $starostVozila = $danes->diffInYears($datumPrveReg);
-            
-            if ($starostVozila > $tipJamstva->starost_vozila) {
-                $nazivKratko = explode(' ', $tipJamstva->naziv)[0];
-                $errors['datum_prve_reg'] = 'Vozilo presega maksimalno starost za tip jamstva "' . $nazivKratko . '" (' . $tipJamstva->starost_vozila . ' let)';
+            $nazivKratko = explode(' ', $tipJamstva->naziv)[0];
+
+            if ($starostVozila > $tipJamstva->starost_vozila) {        
+                $errors['datum_prve_reg'] = 'Vozilo presega maksimalno starost za tip jamstva ' . $nazivKratko . ' (' . $tipJamstva->starost_vozila . ' let)';
             }
 
             // Validate kilometers against warranty type maximum
@@ -320,13 +310,13 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
                 $maxKm += 25000; // Add 25,000 km if extension is selected
             }
             
-            if ($request->km > $maxKm) {
-                $errorMessage = $dodatekKm == 1 
-                    ? "Vozilo presega maksimalno kilometrino za ta tip jamstva (osnova {$tipJamstva->prevozeni_km} km + 25.000 km = {$maxKm} km)"
-                    : "Vozilo presega maksimalno kilometrino za ta tip jamstva (maksimalno {$tipJamstva->prevozeni_km} km)";
-                
-                $errors['km'] = $errorMessage;
-            }
+                            if ($request->km > $maxKm) {
+                    $errorMessage = $dodatekKm == 1 
+                        ? 'Vozilo presega maksimalno kilometrino za tip jamstva ' . $nazivKratko . ' (osnova ' . $tipJamstva->prevozeni_km . ' km + 25.000 km = ' . $maxKm . ' km)'
+                        : 'Vozilo presega maksimalno kilometrino za tip jamstva ' . $nazivKratko . ' (maksimalno ' . $tipJamstva->prevozeni_km . ' km)';
+                    
+                    $errors['km'] = $errorMessage;
+                }
         }
 
         // Validate activation date is not older than 10 days
@@ -402,7 +392,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         $k['pogon'] = '';
        // $k['komercialno_vozilo'] = 0;
         $k['kraj_rojstva'] = '';
-        $k['datum_rojstva'] = AktivacijaJamstvaController::convert_date("01.01.1900");;
+        $k['datum_rojstva'] = AktivacijaJamstvaController::convert_date('01.01.1900');;
         $k['soglasje_1'] = 0;
         $k['soglasje_2'] = 0;
         $k['soglasje_3'] = 0;
@@ -437,7 +427,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
             $kartica = KarticaVozila::create($k);    
         }
         catch (\Illuminate\Database\QueryException $e) {
-            $error = "Napaka pri shranjevanju v bazo!";
+            $error = 'Napaka pri shranjevanju v bazo!';
             if (Auth::user()->isAdmin()){
                 $error = $e->getMessage();
             }
@@ -449,7 +439,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
                   
 
         // zasedi števec
-        if (substr($request->oznaka_jamstva, 0,3) == "WEB")
+        if (substr($request->oznaka_jamstva, 0,3) == 'WEB')
         {
             $user = PogodbaStevec::create(array('stevec' => substr($request->oznaka_jamstva, 4,10), 
                                                 'uporabnik' => $request->userId)
@@ -476,7 +466,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
             'postna_st' => 'required',
 
             //'registrska_st' => 'required',
-            'st_sasije' => 'required',            
+            'st_sasije' => 'required|size:17',
             'ccm' => 'required',           
             'km' => 'required'                      
             
@@ -511,7 +501,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         $k['pogon'] = '';
         //$k['komercialno_vozilo'] = 0;
         $k['kraj_rojstva'] = '';
-        $k['datum_rojstva'] = AktivacijaJamstvaController::convert_date("01.01.1900");;
+        $k['datum_rojstva'] = AktivacijaJamstvaController::convert_date('01.01.1900');;
         $k['soglasje_1'] = 0;
         $k['soglasje_2'] = 0;
         $k['soglasje_3'] = 0;
@@ -582,8 +572,8 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         }            
          
         
-        $element = "flash_ok";
-        $msg = "Oddaja uspešna!";
+        $element = 'flash_ok';
+        $msg = 'Oddaja uspešna!';
 
         // osveži status
         try {                   
@@ -617,7 +607,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
 
         if ($zavrnitev)
         {         
-            $element = "flash_error";          
+            $element = 'flash_error';          
         }
 
         $request->session()->flash($element, $msg);
