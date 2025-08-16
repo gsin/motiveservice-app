@@ -21,6 +21,11 @@ $(function() {
 	$( "#datum_jamstvo_od" ).datepicker( "option", "dateFormat", "d.m.yy");
 	$( "#datum_jamstvo_od" ).val(new Date().toLocaleDateString("SL-si").split(' ').join(''));
 	*/
+
+	$('#flash_ok').fadeIn().delay(2000).fadeOut();    
+    $('#flash_error').fadeIn().delay(2000).fadeOut(); 
+	$('#flash_warning').fadeIn().delay(5000).fadeOut();
+	
 	function umakni_neustrezne(value, index, array) {
 	  	$("#tip_jamstva option[value='" + value + "']").remove();
 	}
