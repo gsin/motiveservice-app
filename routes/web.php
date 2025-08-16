@@ -33,22 +33,22 @@ Route::get('/home', 'HomeController@index')->name('home');
 // application routes
 Route::get('/home', 'HomeController@index')->name('home');
 
-Route::get('/aktivacija-jamstva', 'AktivacijaJamstvaController@index')->name('aktivacija');
-Route::get('/aktivacija-jamstva/{kartica}', 'AktivacijaJamstvaController@show')->name('aktivacija');
+Route::get('/aktivacija-jamstva', 'AktivacijaJamstvaController@index')->name('aktivacija.index');
+Route::get('/aktivacija-jamstva/{kartica}', 'AktivacijaJamstvaController@show')->name('aktivacija.show');
 
 Route::get('/aktivacija-jamstva-all', 'AktivacijaJamstvaController@show_all')->name('aktivacija.all');
 
 
-Route::post('/aktivacija-jamstva', 'AktivacijaJamstvaController@store')->name('aktivacija');
+Route::post('/aktivacija-jamstva', 'AktivacijaJamstvaController@store')->name('aktivacija.store');
 Route::post('/aktivacija-nova', 'AktivacijaJamstvaController@store')->name('aktivacija.shrani');
 Route::post('/aktivacija-store-override', 'AktivacijaJamstvaController@storeWithOverride')->name('aktivacija.store-override');
 Route::post('/aktivacija-save-override', 'AktivacijaJamstvaController@saveWithOverride')->name('aktivacija.save-override');
 
-Route::get('/aktivacija-nova', 'AktivacijaJamstvaController@create')->name('aktivacija');
+Route::get('/aktivacija-nova', 'AktivacijaJamstvaController@create')->name('aktivacija.create');
 //Route::get('/aktivacija-nova', 'AktivacijaJamstvaController@create')->name('aktivacija.create');
 Route::get('/aktivacija-nova/{paket}', 'AktivacijaJamstvaController@createPaket')->name('aktivacija.paket.nova');
 Route::get('/aktivacija-uredi/{id}', 'AktivacijaJamstvaController@edit')->name('aktivacija.uredi');
-Route::post('/aktivacija-uredi/{id}', 'AktivacijaJamstvaController@save')->name('aktivacija.uredi');
+Route::post('/aktivacija-uredi/{id}', 'AktivacijaJamstvaController@save')->name('aktivacija.save');
 Route::get('/aktivacija/oddaj/{id}', 'AktivacijaJamstvaController@oddaj')->name('aktivacija.oddaj');
 Route::get('/aktivacija-brisi/{id}', 'AktivacijaJamstvaController@delete')->name('aktivacija.brisi');
 
@@ -56,7 +56,7 @@ Route::get('/aktivacija-brisi/{id}', 'AktivacijaJamstvaController@delete')->name
 
 Route::post('/aktivacija-paket-nova/', 'AktivacijaJamstvaPaketController@createPaketOznaka')->name('aktivacija-paket');
 Route::post('/aktivacija-paket/', 'AktivacijaJamstvaPaketController@store')->name('aktivacija-paket-shrani');
-//Route::get('/aktivacija-paket-nova', 'AktivacijaJamstvaPaketController@createPaketOznaka')->name('aktivacija-paket-nova');
+Route::get('/aktivacija-paket-nova', 'AktivacijaJamstvaPaketController@createPaketOznaka')->name('aktivacija-paket-nova');
 
 Route::get('/move-pogodbe', 'MovePogodbeController@index')->name('move-pogodbe');
 Route::post('/move-pogodbe/iskanje', 'MovePogodbeController@search')->name('move-pogodbe');

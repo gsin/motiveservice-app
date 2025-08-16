@@ -13,12 +13,42 @@
 	@endif		
 	 
 	@foreach ($errors->all() as $error)
-  		<div>
-			<p class="p-3 mb-2 bg-danger text-white validation-error">{{ $error }}</p>		
-  		</div>      
-  	@endforeach  
+		<div class="validation-error-dialog">
+			<h5>
+				<i class="fa fa-exclamation-triangle"></i> 
+				{{ $error }}
+			</h5>			
+		</div>      
+	@endforeach  
 
+            @if(session('km_modal_data') && $errors->any())
+                <div class="km-extension-dialog">
+                    <h5>
+                        <i class="fa fa-exclamation-triangle"></i> 
+                        {{ session('km_modal_data.message') }}
+					</h5>
+                    
+                    <p class="question">
+                        Ali želite vključiti dodatek Kilometri (+ 25.000 km)?
+                    </p>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-success" onclick="handleKmExtension('yes')">
+                            <i class="fa fa-check"></i> DA, vključi dodatek
+                        </button>
+                        <button type="button" class="btn btn-danger" onclick="handleKmExtension('no')">
+                            <i class="fa fa-times"></i> NE, prekliči
+                        </button>
+                    </div>
+                </div>
+            @endif
+ 
 
+	@if(Session::has('flash_warning'))
+		<div id="flash_warning" class="alert alert-warning">
+			{{ Session::get('flash_warning') }}
+		</div>
+	@endif
+ 
 
 	@if($urejanje == true)
 		@if($errors->any())
@@ -247,25 +277,15 @@
 
   	</div>
 
-	  <div class="form-group">	
-		@if(Session::has('flash_warning'))
-			<div id="flash_warning" class="alert alert-warning">
-				{{ Session::get('flash_warning') }}
-			</div>
-		@endif
-	</div>
-
 	{!! Form::close() !!}
 	<script>
 function submitWithOverride() {
-    // Get the current form
     const form = document.querySelector('.form-aktivacija-vnos');
     if (!form) {
         console.error('Form not found');
         return;
     }
     
-    // Determine the override route based on whether we're editing or creating
     let overrideRoute;
     @if($urejanje == true)
         overrideRoute = '{{ route("aktivacija.save-override") }}';
@@ -273,12 +293,10 @@ function submitWithOverride() {
         overrideRoute = '{{ route("aktivacija.store-override") }}';
     @endif
     
-    // Create a new form for override submission
     const overrideForm = document.createElement('form');
     overrideForm.method = 'POST';
     overrideForm.action = overrideRoute;
     
-    // Add CSRF token
     const csrfToken = document.querySelector('input[name="_token"]').value;
     const csrfInput = document.createElement('input');
     csrfInput.type = 'hidden';
@@ -286,10 +304,9 @@ function submitWithOverride() {
     csrfInput.value = csrfToken;
     overrideForm.appendChild(csrfInput);
     
-    // Add all form data
     const formData = new FormData(form);
     for (let [key, value] of formData.entries()) {
-        if (key !== '_token') { // Skip the original CSRF token
+        if (key !== '_token') {
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = key;
@@ -298,16 +315,104 @@ function submitWithOverride() {
         }
     }
     
-    // Add override parameter
     const overrideInput = document.createElement('input');
     overrideInput.type = 'hidden';
     overrideInput.name = 'override';
     overrideInput.value = 'true';
     overrideForm.appendChild(overrideInput);
     
-    // Submit the override form
     document.body.appendChild(overrideForm);
     overrideForm.submit();
+}
+
+function handleKmExtension(choice) {
+    const form = document.querySelector('.form-aktivacija-vnos');
+    if (!form) {
+        console.error('Form not found');
+        return;
+    }
+    
+    if (choice === 'yes') {
+        // Set the radio button to include kilometer extension
+        const dodatekKmRadio = form.querySelector('input[name="dodatek_km"][value="1"]');
+        if (dodatekKmRadio) {
+            dodatekKmRadio.checked = true;
+        }
+        
+        // Show success message
+        const successMsg = document.createElement('div');
+        successMsg.className = 'alert alert-success';
+        successMsg.innerHTML = '<i class="fa fa-check"></i> Dodatek kilometri (+25.000 km) vključen v jamstvo.';
+        
+        // Insert the message before the modal
+        const modal = document.querySelector('.km-extension-dialog');
+        if (modal) {
+            modal.parentNode.insertBefore(successMsg, modal);
+            // Remove the modal
+            modal.remove();
+        }
+        
+        // Clear the session data by making a request to clear it
+		/*
+        const clearForm = document.createElement('form');
+        clearForm.method = 'POST';
+        clearForm.action = window.location.href;
+        
+        const csrfToken = document.querySelector('input[name="_token"]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = csrfToken;
+        clearForm.appendChild(csrfInput);
+        
+        // Add a flag to clear the modal data
+        const clearInput = document.createElement('input');
+        clearInput.type = 'hidden';
+        clearInput.name = 'clear_km_modal';
+        clearInput.value = '1';
+        clearForm.appendChild(clearInput);
+        
+        document.body.appendChild(clearForm);
+        clearForm.submit();
+        */
+    } else {
+        // User chose "NO" - show warning and clear session
+        //const warningMsg = document.createElement('div');
+        //warningMsg.className = 'alert alert-warning';
+        //warningMsg.innerHTML = '<i class="fa fa-exclamation-triangle"></i> Jamstvo ni bilo aktivirano. Vozilo presega maksimalno kilometrino.';
+        
+        // Insert the message before the modal
+        const modal = document.querySelector('.km-extension-dialog');
+        if (modal) {
+            //modal.parentNode.insertBefore(warningMsg, modal);
+            // Remove the modal
+            modal.remove();
+        }
+        
+        // Clear the session data by making a request to clear it
+		/*
+        const clearForm = document.createElement('form');
+        clearForm.method = 'POST';
+        clearForm.action = window.location.href;
+        
+        const csrfToken = document.querySelector('input[name="_token"]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = csrfToken;
+        clearForm.appendChild(csrfInput);
+        
+        // Add a flag to clear the modal data
+        const clearInput = document.createElement('input');
+        clearInput.type = 'hidden';
+        clearInput.name = 'clear_km_modal';
+        clearInput.value = '1';
+        clearForm.appendChild(clearInput);
+        
+        document.body.appendChild(clearForm);
+        clearForm.submit();
+		*/
+    }
 }
 </script>
  	<script src="{{ asset('js/vnos-aktivacija.js') }}" defer=""></script>
@@ -317,4 +422,80 @@ function submitWithOverride() {
 @push('scripts')
 
 
+@endpush
+
+@push('styles')
+<style>
+.km-extension-dialog {
+    border: 2px solid #ffc107;
+    background-color: #fff3cd;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.km-extension-dialog h5 {
+    color: #856404;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.km-extension-dialog p {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: #856404;
+}
+
+.km-extension-dialog .question {
+    font-size: 16px;
+    margin-bottom: 20px;
+    color: #856404;
+    font-weight: bold;
+}
+
+.km-extension-dialog .btn {
+    font-size: 16px;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.km-extension-dialog .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.km-extension-dialog .btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.km-extension-dialog .btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.validation-error-dialog {
+    border: 2px solid #dc3545;
+    background-color: #f8d7da;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.validation-error-dialog h5 {
+    color: #721c24;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.validation-error-dialog p {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: #721c24;
+}
+</style>
 @endpush
