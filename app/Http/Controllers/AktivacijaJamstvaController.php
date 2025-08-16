@@ -111,7 +111,8 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         $sifraAvtohise = Auth::user()->sifra_avtohise;    
         $znamkeVozil = ZnamkaVozila::orderBy('opis', 'ASC')->get();
         $prodajalec = Prodajalec::where('koda', $sifraAvtohise)->first();
-        
+        $userId = Auth::user()->id; 
+
         $prodajalci = Prodajalec::orderBy('naziv', 'ASC')->get();
 
 
@@ -137,7 +138,14 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         $k->datum_predaje =  AktivacijaJamstvaController::convert_date_fmt($k->datum_predaje );
         $k->datum_jamstvo_od =  AktivacijaJamstvaController::convert_date_fmt($k->datum_jamstvo_od );                     
 
-        return view('aktivacija-dodaj', ['prodajalec' => $prodajalec, 'zv' => $znamkeVozil, 'prodajalci' => $prodajalci, 
+
+        $view_name = 'aktivacija-dodaj';
+        if ($userId == 1 || $userId == 5 || $userId == 18 ) {
+            $view_name = 'aktivacija-dodaj-new';
+        }
+
+
+        return view($view_name, ['prodajalec' => $prodajalec, 'zv' => $znamkeVozil, 'prodajalci' => $prodajalci, 
                                             'tipiJamstev'=>$tipiJamstev, 'jeAdmin' => Auth::user()->isAdmin() || Auth::user()->isSuperUser(),
                                             'oznake' => $oznake, 'oznakaPredlog' => $oznakaPredlog, 'k' => $k,
                                             'urejanje'=>true, 'dodatek_menj'=>true]);
@@ -283,7 +291,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
 
     public function store(Request $request)
     {
-    
+        // shranjevanje po dodajanju nove aktivacije
        
 
         $validator = Validator::make($request->all(), [
@@ -314,6 +322,8 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
       
         $userId = Auth::user()->id; 
         if ($userId == 1 || $userId == 5 || $userId == 18 ) {
+            $errors = [];
+
             // Validate vehicle age against warranty type maximum age
             $tipJamstva = JamstvoTip::where('koda', $request->tip_jamstva)->first();
             if ($tipJamstva) {
@@ -322,9 +332,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
                 $starostVozila = $danes->diffInYears($datumPrveReg);
                 
                 if ($starostVozila > $tipJamstva->starost_vozila) {
-                    return redirect('/aktivacija-nova')
-                                ->withErrors(['datum_prve_reg' => 'Vozilo presega maksimalno starost za ta tip storitve upravljanega jamstva'])
-                                ->withInput();
+                    $errors['datum_prve_reg'] = 'Vozilo presega maksimalno starost za ta tip storitve upravljanega jamstva';
                 }
             }
 
@@ -334,9 +342,37 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
             $razlikaDni = $danes->diffInDays($datumAktivacije, false);
             
             if ($razlikaDni > 10) {
+                $errors['datum_jamstvo_od'] = 'Vozilo presega maksimalen čas za aktivacijo od podpisa pogodbe';
+            }
+
+            // Validate kilometers against warranty type maximum
+            if ($tipJamstva) {
+                $maxKm = $tipJamstva->prevozeni_km;
+                $dodatekKm = $request->input('dodatek_km', 0);
+                
+                if ($dodatekKm == 1) {
+                    $maxKm += 25000; // Add 25,000 km if extension is selected
+                }
+                
+                if ($request->km > $maxKm) {
+                    $errorMessage = $dodatekKm == 1 
+                        ? "Vozilo presega maksimalno kilometrino za ta tip jamstva (osnova {$tipJamstva->prevozeni_km} km + 25.000 km = {$maxKm} km)"
+                        : "Vozilo presega maksimalno kilometrino za ta tip jamstva (maksimalno {$tipJamstva->prevozeni_km} km)";
+                    
+                    $errors['km'] = $errorMessage;
+                }
+            }
+
+            // Add warning for vehicles with more than 210 KW
+            if ($request->moc_motorja > 210) {
+                $request->session()->flash('flash_warning', 'Vozilo ima več kot maksimalno vrednost 210 KW. Vsak nadaljnji KW bo dodatno zaračunan. Možnost sklenitve le do 320 KW, za več informacij se lahko obrnete na vašega skrbnika.');
+            }
+
+            if (count($errors) > 0) {
+                $request->session()->flash('flash_warning', 'Vozilo presega aktivacijske pogoje. V kolikor želite vseeno aktivirati, se lahko obrnete na vašega skrbnika.');
                 return redirect('/aktivacija-nova')
-                            ->withErrors(['datum_jamstvo_od' => 'Vozilo presega maksimalen čas za aktivacijo od podpisa pogodbe'])
-                            ->withInput();
+                    ->withErrors($errors)
+                    ->withInput();
             }
         }
 
@@ -351,7 +387,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
 
         // defaulti ker umaknjena polja
         $k['pogon'] = '';
-        $k['komercialno_vozilo'] = 0;
+       // $k['komercialno_vozilo'] = 0;
         $k['kraj_rojstva'] = '';
         $k['datum_rojstva'] = AktivacijaJamstvaController::convert_date("01.01.1900");;
         $k['soglasje_1'] = 0;
@@ -384,21 +420,6 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
             $k['menjalnik'] = 'R';   
         }
 
-        
-        //$k->datum_prve_reg = AktivacijaJamstvaController::convert_date($k->datum_prve_reg);
-        //$k->datum_rojstva = AktivacijaJamstvaController::convert_date($k->datum_rojstva);
-        //$k->datum_podpisa = AktivacijaJamstvaController::convert_date($k->datum_podpisa);
-        //$k->datum_predaje = AktivacijaJamstvaController::convert_date($k->datum_predaje);
-        //$k->datum_jamstvo_od = AktivacijaJamstvaController::convert_date($k->datum_jamstvo_od);
-        
-         //$k->datum_prve_reg = Carbon::parse(str_replace(' ', '', $k->datum_prve_reg))->format('d.m.Y');
-         //$k->datum_rojstva = Carbon::parse(str_replace(' ', '', $k->datum_rojstva))->format('d.m.Y');
-         //$k->datum_podpisa = Carbon::parse(str_replace(' ', '', $k->datum_podpisa))->format('d.m.Y');
-         //$k->datum_predaje = Carbon::parse(str_replace(' ', '', $k->datum_predaje))->format('d.m.Y');
-         //$k->datum_jamstvo_od = Carbon::parse(str_replace(' ', '', $k->datum_jamstvo_od))->format('d.m.Y')->format('Y-m-d');
-        
-
-
         try {
             $kartica = KarticaVozila::create($k);    
         }
@@ -414,12 +435,8 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         }
                   
        
- 
-
-
-        // zasedi števec
-
         
+        // zasedi števec
         if (substr($request->oznaka_jamstva, 0,3) == "WEB")
         {
             $user = PogodbaStevec::create(array('stevec' => substr($request->oznaka_jamstva, 4,10), 
@@ -495,7 +512,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
 
     public function save(Request $request)
     {
-    
+        // shranjevanje po urejanju
         $k = $request->all();
 
         $validator = Validator::make($request->all(), [
@@ -546,9 +563,33 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
                 if ($starostVozila > $tipJamstva->starost_vozila) {
                     $errors['datum_prve_reg'] = 'Vozilo presega maksimalno starost za ta tip jamstva!';
                 }
+
+                // Validate kilometers against warranty type maximum
+                $maxKm = $tipJamstva->prevozeni_km;
+                $dodatekKm = $request->input('dodatek_km', 0);
+                
+                if ($dodatekKm == 1) {
+                    $maxKm += 25000; // Add 25,000 km if extension is selected
+                }
+                
+                if ($request->km > $maxKm) {
+                    $errorMessage = $dodatekKm == 1 
+                        ? "Vozilo presega maksimalno kilometrino za ta tip jamstva (osnova {$tipJamstva->prevozeni_km} km + 25.000 km = {$maxKm} km)"
+                        : "Vozilo presega maksimalno kilometrino za ta tip jamstva (maksimalno {$tipJamstva->prevozeni_km} km)";
+                    
+                    $errors['km'] = $errorMessage;
+                }
+            }
+
+        
+
+            // Add warning for vehicles with more than 210 KW
+            if ($request->moc_motorja > 210) {
+                $request->session()->flash('flash_warning', 'Moč vozila presega maksimalno vrednost 210 KW. Vsak nadaljnji KW bo dodatno zaračunan. Možnost sklenitve le do 320 KW, za več informacij se lahko obrnete na vašega skrbnika.');
             }
             
             if (count($errors) > 0) {
+                $request->session()->flash('flash_warning', 'Vozilo presega aktivacijske pogoje. V kolikor želite vseeno aktivirati, se lahko obrnete na vašega skrbnika.');
                 return redirect($request->path())
                     ->withErrors($errors)
                     ->withInput();
@@ -563,7 +604,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
        
         // defaulti ker umaknjena polja
         $k['pogon'] = '';
-        $k['komercialno_vozilo'] = 0;
+        //$k['komercialno_vozilo'] = 0;
         $k['kraj_rojstva'] = '';
         $k['datum_rojstva'] = AktivacijaJamstvaController::convert_date("01.01.1900");;
         $k['soglasje_1'] = 0;

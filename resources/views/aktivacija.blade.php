@@ -21,6 +21,12 @@
 	    </div>
 	@endif
 
+	@if(Session::has('flash_warning'))
+	    <div id="flash_warning" class="alert alert-warning">
+	        {{ Session::get('flash_warning') }}
+	    </div>
+	@endif
+
 	<table class="table table-bordered" id="nabor-ukazov">
 		<tr>
 			<td>

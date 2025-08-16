@@ -18,6 +18,12 @@
   		</div>      
   	@endforeach  
 
+	@if(Session::has('flash_warning'))
+	    <div id="flash_warning" class="alert alert-warning">
+	        {{ Session::get('flash_warning') }}
+	    </div>
+	@endif
+
 	@if($urejanje == true)
 		{{ Form::model($k, array('route' => array('aktivacija.uredi', $k->id))) }}
 		{{ Form::hidden('id', $k->id) }}

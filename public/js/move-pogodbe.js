@@ -34,6 +34,7 @@ $(function() {
 
     $('#flash_ok').fadeIn().delay(2000).fadeOut();    
     $('#flash_error').fadeIn().delay(2000).fadeOut(); 
+	$('#flash_warning').fadeIn().delay(5000).fadeOut();
 
     $('.btn btn-primary').on('click', function(e) {
     	e.preventDefault();
