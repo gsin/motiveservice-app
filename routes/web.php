@@ -41,9 +41,12 @@ Route::get('/aktivacija-jamstva-all', 'AktivacijaJamstvaController@show_all')->n
 
 Route::post('/aktivacija-jamstva', 'AktivacijaJamstvaController@store')->name('aktivacija');
 Route::post('/aktivacija-nova', 'AktivacijaJamstvaController@store')->name('aktivacija.shrani');
+Route::post('/aktivacija-store-override', 'AktivacijaJamstvaController@storeWithOverride')->name('aktivacija.store-override');
+Route::post('/aktivacija-save-override', 'AktivacijaJamstvaController@saveWithOverride')->name('aktivacija.save-override');
 
 Route::get('/aktivacija-nova', 'AktivacijaJamstvaController@create')->name('aktivacija');
-Route::get('/aktivacija-nova/{paket}', 'AktivacijaJamstvaController@createPaket')->name('aktivacija');
+//Route::get('/aktivacija-nova', 'AktivacijaJamstvaController@create')->name('aktivacija.create');
+Route::get('/aktivacija-nova/{paket}', 'AktivacijaJamstvaController@createPaket')->name('aktivacija.paket.nova');
 Route::get('/aktivacija-uredi/{id}', 'AktivacijaJamstvaController@edit')->name('aktivacija.uredi');
 Route::post('/aktivacija-uredi/{id}', 'AktivacijaJamstvaController@save')->name('aktivacija.uredi');
 Route::get('/aktivacija/oddaj/{id}', 'AktivacijaJamstvaController@oddaj')->name('aktivacija.oddaj');
@@ -53,7 +56,7 @@ Route::get('/aktivacija-brisi/{id}', 'AktivacijaJamstvaController@delete')->name
 
 Route::post('/aktivacija-paket-nova/', 'AktivacijaJamstvaPaketController@createPaketOznaka')->name('aktivacija-paket');
 Route::post('/aktivacija-paket/', 'AktivacijaJamstvaPaketController@store')->name('aktivacija-paket-shrani');
-Route::get('/aktivacija-paket-nova', 'AktivacijaJamstvaPaketController@createPaketOznaka')->name('aktivacija-paket-nova');
+//Route::get('/aktivacija-paket-nova', 'AktivacijaJamstvaPaketController@createPaketOznaka')->name('aktivacija-paket-nova');
 
 Route::get('/move-pogodbe', 'MovePogodbeController@index')->name('move-pogodbe');
 Route::post('/move-pogodbe/iskanje', 'MovePogodbeController@search')->name('move-pogodbe');
@@ -86,3 +89,7 @@ Route::post('/amzs-izvoz/iskanje', 'AmzsIzvozController@search')->name('amzs-izv
 Route::group(['prefix' => 'admin'], function () {
     Voyager::routes();
 });
+
+// Aktivacija jamstva routes
+Route::get('/aktivacija-confirm-override', 'AktivacijaJamstvaController@confirmOverride')->name('aktivacija.confirm-override');
+Route::post('/aktivacija-override-save', 'AktivacijaJamstvaController@overrideSave')->name('aktivacija.override-save');

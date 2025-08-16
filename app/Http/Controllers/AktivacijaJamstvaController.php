@@ -290,6 +290,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
     {
         $errors = [];
         
+
         // Validate vehicle age against warranty type maximum age
         $tipJamstva = JamstvoTip::where('koda', $request->tip_jamstva)->first();
         if ($tipJamstva) {
@@ -322,15 +323,15 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         // Validate activation date is not older than 10 days
         $datumAktivacije = Carbon::parse($request->datum_jamstvo_od);
         $danes = Carbon::now();
-        $razlikaDni = $danes->diffInDays($datumAktivacije, false);
+        $razlikaDni = abs($danes->diffInDays($datumAktivacije, false));
         
         if ($razlikaDni > 10) {
-            $errors['datum_jamstvo_od'] = 'Vozilo presega maksimalen čas za aktivacijo od podpisa pogodbe';
+            $errors['datum_jamstvo_od'] = 'Vozilo presega maksimalen čas za aktivacijo od podpisa pogodbe (10 dni)';
         }
 
         // Add warning for vehicles with more than 210 KW
         if ($request->moc_motorja > 210) {
-            $request->session()->flash('flash_warning', 'Vozilo ima več kot maksimalno vrednost 210 KW. Vsak nadaljnji KW bo dodatno zaračunan. Možnost sklenitve le do 320 KW, za več informacij se lahko obrnete na vašega skrbnika.');
+            $errors['moc_motorja'] = 'Vozilo ima več kot maksimalno vrednost 210 KW. Vsak nadaljnji KW bo dodatno zaračunan. Možnost sklenitve le do 320 KW, za več informacij se lahko obrnete na vašega skrbnika.';  
         }
 
         return $errors;
@@ -338,6 +339,11 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
 
     public function store(Request $request)
     {
+        // Check if override is requested
+        if ($request->has('override') && $request->override === 'true') {
+            return $this->storeWithOverride($request);
+        }
+
         // shranjevanje po dodajanju nove aktivacije
        
 
@@ -362,7 +368,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         ]);
 
         if ($validator->fails()) {
-            return redirect('/aktivacija-nova')
+            return redirect($request->path())
                         ->withErrors($validator)
                         ->withInput();
         }
@@ -370,12 +376,10 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         $userId = Auth::user()->id; 
         if ($userId == 1 || $userId == 5 || $userId == 18 ) {
             $errors = $this->validateWarrantyConditions($request);
-
             if (count($errors) > 0) {
-                $request->session()->flash('flash_warning', 'Vozilo presega aktivacijske pogoje. V kolikor želite vseeno aktivirati, se lahko obrnete na vašega skrbnika.');
-                return redirect('/aktivacija-nova')
-                    ->withErrors($errors)
-                    ->withInput();
+                return redirect($request->path())
+                        ->withErrors($errors)
+                        ->withInput();
             }
         }
 
@@ -432,7 +436,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
                 $error = $e->getMessage();
             }
 
-            return redirect('/aktivacija-nova')
+            return redirect($request->path())
                         ->withErrors($error)
                         ->withInput();
         }
@@ -451,6 +455,11 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
 
     public function save(Request $request)
     {
+        // Check if override is requested
+        if ($request->has('override') && $request->override === 'true') {
+            return $this->saveWithOverride($request);
+        }
+
         // shranjevanje po urejanju
         $k = $request->all();
 
@@ -484,10 +493,9 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
             $errors = $this->validateWarrantyConditions($request);
 
             if (count($errors) > 0) {
-                $request->session()->flash('flash_warning', 'Vozilo presega aktivacijske pogoje. V kolikor želite vseeno aktivirati, se lahko obrnete na vašega skrbnika.');
                 return redirect($request->path())
-                    ->withErrors($errors)
-                    ->withInput();
+                ->withErrors($errors)
+                ->withInput();
             }
         }
 
@@ -625,5 +633,206 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
     public function convert_date_fmt($date){
         $carbon = new Carbon($date);
         return $carbon->format('d.m.Y');
+    }
+
+    /**
+     * Show confirmation page for overriding validation errors
+     */
+    public function confirmOverride(Request $request)
+    {
+        $errors = $request->session()->get('validation_errors', []);
+        $requestData = $request->session()->get('request_data', []);
+        
+        // Debug logging
+        \Log::info('confirmOverride called', [
+            'errors_count' => count($errors),
+            'request_data_count' => count($requestData),
+            'session_id' => $request->session()->getId()
+        ]);
+        
+        if (empty($errors) || empty($requestData)) {
+            // If no data in session, redirect back to create form
+            return redirect()->route('aktivacija.create')
+                ->withErrors(['general' => 'Ni podatkov za potrditev. Prosimo, poskusite ponovno.']);
+        }
+        
+        return view('aktivacija-confirm-override', [
+            'errors' => $errors,
+            'requestData' => $requestData
+        ]);
+    }
+
+    /**
+     * Save warranty after user confirms override of validation errors
+     */
+    public function overrideSave(Request $request)
+    {
+        // Validate the override confirmation
+        $validator = Validator::make($request->all(), [
+            'override_reason' => 'required|min:10',
+            'confirm_override' => 'required|accepted'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        // Get the original request data from session
+        $requestData = $request->session()->get('request_data', []);
+        if (empty($requestData)) {
+            return redirect()->route('aktivacija.create')
+                ->withErrors(['general' => 'Ni podatkov za shranjevanje. Prosimo, poskusite ponovno.']);
+        }
+
+        // Create a new request with the original data
+        $originalRequest = new Request($requestData);
+        
+        // Add override information
+        $originalRequest->merge([
+            'override_reason' => $request->override_reason,
+            'override_user_id' => Auth::user()->id,
+            'override_timestamp' => now()
+        ]);
+
+        // Call the appropriate save method based on whether it's a new record or edit
+        if (isset($requestData['id'])) {
+            // Editing existing record
+            $result = $this->saveWithOverride($originalRequest);
+        } else {
+            // Creating new record
+            $result = $this->storeWithOverride($originalRequest);
+        }
+
+        // Clear the session data after successful save
+        $request->session()->forget(['validation_errors', 'request_data']);
+        
+        return $result;
+    }
+
+    /**
+     * Store new warranty with override information
+     */
+    public function storeWithOverride(Request $request)
+    {
+        $k = $request->all();
+
+        $k['datum_prve_reg'] = AktivacijaJamstvaController::convert_date($request->datum_prve_reg);
+        $k['datum_rojstva'] = AktivacijaJamstvaController::convert_date($request->datum_rojstva);
+        $k['datum_podpisa'] = AktivacijaJamstvaController::convert_date($request->datum_podpisa);
+        $k['datum_predaje'] = AktivacijaJamstvaController::convert_date($request->datum_predaje);
+        $k['datum_jamstvo_od'] = AktivacijaJamstvaController::convert_date($request->datum_jamstvo_od);
+        $k['status'] = 0; // status odprt!
+
+        // defaulti ker umaknjena polja
+        $k['pogon'] = '';
+        $k['kraj_rojstva'] = '';
+        $k['datum_rojstva'] = AktivacijaJamstvaController::convert_date('01.01.1900');
+        $k['soglasje_1'] = 0;
+        $k['soglasje_2'] = 0;
+        $k['soglasje_3'] = 0;
+
+        if (!array_key_exists('registrska_st', $k)){
+            $k['registrska_st'] = '';
+        }
+ 
+        if ($k['registrska_st'] == null){
+            $k['registrska_st'] = '';   
+        }
+
+        if (!array_key_exists('opomba', $k)){
+            $k['opomba'] = '';
+        }
+
+        if ($k['opomba'] == null){
+            $k['opomba'] = '';   
+        }
+
+        if (!array_key_exists('menjalnik', $k)){
+            $k['menjalnik'] = 'R';
+        }
+
+        if ($k['menjalnik'] == null){
+            $k['menjalnik'] = 'R';   
+        }
+
+        try {
+            $kartica = KarticaVozila::create($k);    
+        }
+        catch (\Illuminate\Database\QueryException $e) {
+            $error = 'Napaka pri shranjevanju v bazo!';
+            if (Auth::user()->isAdmin()){
+                $error = $e->getMessage();
+            }
+
+            return redirect()->route('aktivacija.create')
+                        ->withErrors($error)
+                        ->withInput();
+        }
+                  
+        // zasedi števec
+        if (substr($request->oznaka_jamstva, 0,3) == 'WEB')
+        {
+            $user = PogodbaStevec::create(array('stevec' => substr($request->oznaka_jamstva, 4,10), 
+                                                'uporabnik' => $request->userId)
+            );             
+        }    
+        
+        $request->session()->flash('flash_ok', 'Jamstvo uspešno aktivirano kljub prekršenim pogojem. Razlog: ' . $request->opomba);
+        return redirect('/aktivacija-jamstva');        
+    }
+
+    /**
+     * Save existing warranty with override information
+     */
+    public function saveWithOverride(Request $request)
+    {
+        $k = $request->all();
+
+        $k['datum_prve_reg'] = AktivacijaJamstvaController::convert_date($request->datum_prve_reg);
+        $k['datum_rojstva'] = AktivacijaJamstvaController::convert_date($request->datum_rojstva);
+        $k['datum_podpisa'] = AktivacijaJamstvaController::convert_date($request->datum_podpisa);
+        $k['datum_predaje'] = AktivacijaJamstvaController::convert_date($request->datum_predaje);
+        $k['datum_jamstvo_od'] = AktivacijaJamstvaController::convert_date($request->datum_jamstvo_od);
+       
+        // defaulti ker umaknjena polja
+        $k['pogon'] = '';
+        $k['kraj_rojstva'] = '';
+        $k['datum_rojstva'] = AktivacijaJamstvaController::convert_date('01.01.1900');
+        $k['soglasje_1'] = 0;
+        $k['soglasje_2'] = 0;
+        $k['soglasje_3'] = 0;
+
+        if (!array_key_exists('registrska_st', $k)){
+            $k['registrska_st'] = '';
+        }
+ 
+        if ($k['registrska_st'] == null){
+            $k['registrska_st'] = '';   
+        }
+
+        if (!array_key_exists('opomba', $k)){
+            $k['opomba'] = '';
+        }
+
+        if ($k['opomba'] == null){
+            $k['opomba'] = '';   
+        }
+
+        if (!array_key_exists('menjalnik', $k)){
+            $k['menjalnik'] = 'R';
+        }
+
+        if ($k['menjalnik'] == null){
+            $k['menjalnik'] = 'R';   
+        }
+
+        $kartica = KarticaVozila::find($k['id']);
+        $kartica->fill($k);
+        $kartica->save();
+        
+        $request->session()->flash('flash_ok', 'Jamstvo uspešno posodobljeno kljub prekršenim pogojem. Razlog: ' . $request->opomba);
+        return redirect('/aktivacija-jamstva');        
     }
 }

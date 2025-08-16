@@ -18,17 +18,21 @@
   		</div>      
   	@endforeach  
 
-	@if(Session::has('flash_warning'))
-	    <div id="flash_warning" class="alert alert-warning">
-	        {{ Session::get('flash_warning') }}
-	    </div>
-	@endif
+
 
 	@if($urejanje == true)
-		{{ Form::model($k, array('route' => array('aktivacija.uredi', $k->id))) }}
+		@if($errors->any())
+			{{ Form::model($k, array('route' => 'aktivacija.save-override', 'class'=>'form-aktivacija-vnos')) }}
+		@else
+			{{ Form::model($k, array('route' => array('aktivacija.uredi', $k->id), 'class'=>'form-aktivacija-vnos')) }}
+		@endif
 		{{ Form::hidden('id', $k->id) }}
 	@else
-		{!! Form::open(array('action' => 'AktivacijaJamstvaController@store', 'class'=>'form-aktivacija-vnos')) !!}
+		@if($errors->any())
+			{!! Form::open(array('route' => 'aktivacija.store-override', 'class'=>'form-aktivacija-vnos')) !!}
+		@else
+			{!! Form::open(array('route' => 'aktivacija.shrani', 'class'=>'form-aktivacija-vnos')) !!}
+		@endif
 	@endif
 	{{ Form::hidden('userId', Auth::user()->id) }}
 
@@ -216,17 +220,23 @@
 
 	<div class="form-group">
   		<div class="input-delimiter">SOGLASJE</div>
-	</div>
+  	</div>
 
 	<div class="form-group">
-		<p style="text-align: justify">Skladno z navedbami v priloženih Splošnih pogojih koordinacije &raquo;Storitve upravljanega jamstva&laquo; in Zakonom o varstvu osebnih podatkov (ZVOP), Ur.l. 94/2007, 16.10.2007, dovoljujem obdelovanje osebnih podatkov s strani nosilca za obdelovanje podatkov ali tretjih družb in podjetij, pooblaščenih s strani nosilca, ob upoštevanju načina in namenov, navedenih v naslednjih točkah Splošnih pogojev:</p>
+		<p style="text-align: justify">Skladno z navedbami v priloženih Splošnih pogojih koordinaciji &raquo;Storitve upravljanega jamstva&laquo; in Zakonom o varstvu osebnih podatkov (ZVOP), Ur.l. 94/2007, 16.10.2007, dovoljujem obdelovanje osebnih podatkov s strani nosilca za obdelovanje podatkov ali tretjih družb in podjetij, pooblaščenih s strani nosilca, ob upoštevanju načina in namenov, navedenih v naslednjih točkah Splošnih pogojev:</p>
 	</div>
 	 
-  	<div class="form-group">	  
-	    <button class="btn btn-success">Shrani</button>
-
-	    <span style="flex: 3"></span>
-
+   	<div class="form-group">
+ 
+	   <button type="submit" class="btn btn-success">Shrani</button>
+ 		
+ 		@if($errors->any())
+ 			<button type="button" class="btn btn-warning" onclick="submitWithOverride()">Shrani kljub napakam</button>	
+ 	    @endif
+ 
+ 		
+ 	    <span style="flex: 3"></span>
+ 
 	    @if ($urejanje == true)
 	    	@if ($k->status == 0)
 		    	<a href="/aktivacija-brisi/{{$k->id}}" class="btn btn-info">Briši osnutek</a>
@@ -237,9 +247,69 @@
 
   	</div>
 
- 
+	  <div class="form-group">	
+		@if(Session::has('flash_warning'))
+			<div id="flash_warning" class="alert alert-warning">
+				{{ Session::get('flash_warning') }}
+			</div>
+		@endif
+	</div>
 
 	{!! Form::close() !!}
+	<script>
+function submitWithOverride() {
+    // Get the current form
+    const form = document.querySelector('.form-aktivacija-vnos');
+    if (!form) {
+        console.error('Form not found');
+        return;
+    }
+    
+    // Determine the override route based on whether we're editing or creating
+    let overrideRoute;
+    @if($urejanje == true)
+        overrideRoute = '{{ route("aktivacija.save-override") }}';
+    @else
+        overrideRoute = '{{ route("aktivacija.store-override") }}';
+    @endif
+    
+    // Create a new form for override submission
+    const overrideForm = document.createElement('form');
+    overrideForm.method = 'POST';
+    overrideForm.action = overrideRoute;
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('input[name="_token"]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = '_token';
+    csrfInput.value = csrfToken;
+    overrideForm.appendChild(csrfInput);
+    
+    // Add all form data
+    const formData = new FormData(form);
+    for (let [key, value] of formData.entries()) {
+        if (key !== '_token') { // Skip the original CSRF token
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = value;
+            overrideForm.appendChild(input);
+        }
+    }
+    
+    // Add override parameter
+    const overrideInput = document.createElement('input');
+    overrideInput.type = 'hidden';
+    overrideInput.name = 'override';
+    overrideInput.value = 'true';
+    overrideForm.appendChild(overrideInput);
+    
+    // Submit the override form
+    document.body.appendChild(overrideForm);
+    overrideForm.submit();
+}
+</script>
  	<script src="{{ asset('js/vnos-aktivacija.js') }}" defer=""></script>
  
 @stop
@@ -247,8 +317,4 @@
 @push('scripts')
 
 
-
-<script>
-
-</script>
 @endpush
