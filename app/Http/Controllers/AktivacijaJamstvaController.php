@@ -336,6 +336,17 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
             $errors['moc_motorja'] = 'Vozilo ima več kot maksimalno vrednost 210 KW. Vsak nadaljnji KW bo dodatno zaračunan. Možnost sklenitve le do 320 KW, za več informacij se lahko obrnete na vašega skrbnika.';  
         }
 
+        // Check if automatic transmission is selected but add-on is not enabled
+        if ($request->menjalnik === 'A' && $request->input('dodatek_avt_menj', 0) == 0) {
+           
+            // Store automatic transmission modal data in session for the view to access
+            session(['avt_menj_modal_data' => [
+                'message' => 'Vaše vozilo ima avtomatski menjalnik, vendar niste vključili dodatka avtomatski menjalnik. Ga želite vključiti?',
+                'menjalnik' => $request->menjalnik,
+                'tip_jamstva' => $tipJamstva ? $tipJamstva->naziv : 'N/A'
+            ]]);
+        }
+
         return $errors;
     }
 
@@ -344,6 +355,12 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         // Check if this is a request to clear the km modal
         if ($request->has('clear_km_modal')) {
             $request->session()->forget('km_modal_data');
+            return redirect()->back()->withInput();
+        }
+        
+        // Check if this is a request to clear the automatic transmission modal
+        if ($request->has('clear_avt_menj_modal')) {
+            $request->session()->forget('avt_menj_modal_data');
             return redirect()->back()->withInput();
         }
         
@@ -466,6 +483,12 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         // Check if this is a request to clear the km modal
         if ($request->has('clear_km_modal')) {
             $request->session()->forget('km_modal_data');
+            return redirect()->back()->withInput();
+        }
+        
+        // Check if this is a request to clear the automatic transmission modal
+        if ($request->has('clear_avt_menj_modal')) {
+            $request->session()->forget('avt_menj_modal_data');
             return redirect()->back()->withInput();
         }
         

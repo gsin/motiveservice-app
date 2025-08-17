@@ -21,27 +21,48 @@
 		</div>      
 	@endforeach  
 
-            @if(session('km_modal_data') && $errors->any())
-                <div class="km-extension-dialog">
-                    <h5>
-                        <i class="fa fa-exclamation-triangle"></i> 
-                        {{ session('km_modal_data.message') }}
-					</h5>
-                    
-                    <p class="question">
-                        Ali želite vključiti dodatek Kilometri (+ 25.000 km)?
-                    </p>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-success" onclick="handleKmExtension('yes')">
-                            <i class="fa fa-check"></i> DA, vključi dodatek
-                        </button>
-                        <button type="button" class="btn btn-danger" onclick="handleKmExtension('no')">
-                            <i class="fa fa-times"></i> NE, prekliči
-                        </button>
-                    </div>
-                </div>
-            @endif
- 
+	@if(session('km_modal_data') && $errors->any())
+			<div class="km-extension-dialog">
+				<h5>
+					<i class="fa fa-exclamation-triangle"></i> 
+					{{ session('km_modal_data.message') }}
+			</h5>
+				
+				<p class="question">
+					Ali želite vključiti dodatek Kilometri (+ 25.000 km)?
+				</p>
+				<div class="d-flex gap-2">
+					<button type="button" class="btn btn-success" onclick="handleKmExtension('yes')">
+						<i class="fa fa-check"></i> DA, vključi dodatek
+					</button>
+					<button type="button" class="btn btn-danger" onclick="handleKmExtension('no')">
+						<i class="fa fa-times"></i> NE, prekliči
+					</button>
+				</div>
+			</div>
+		@endif
+
+		@if(session('avt_menj_modal_data') && $errors->any())
+			<div class="avt-menj-extension-dialog">
+				<h5>
+					<i class="fa fa-exclamation-triangle"></i> 
+					{{ session('avt_menj_modal_data.message') }}
+			</h5>
+				
+				<p class="question">
+					Ali želite vključiti dodatek Avtomatski menjalnik?
+				</p>
+				<div class="d-flex gap-2">
+					<button type="button" class="btn btn-success" onclick="handleAvtMenjExtension('yes')">
+						<i class="fa fa-check"></i> DA, vključi dodatek
+					</button>
+					<button type="button" class="btn btn-danger" onclick="handleAvtMenjExtension('no')">
+						<i class="fa fa-times"></i> NE, prekliči
+					</button>
+				</div>
+			</div>
+		@endif
+
 
 	@if(Session::has('flash_warning'))
 		<div id="flash_warning" class="alert alert-warning">
@@ -414,6 +435,96 @@ function handleKmExtension(choice) {
 		*/
     }
 }
+
+function handleAvtMenjExtension(choice) {
+    const form = document.querySelector('.form-aktivacija-vnos');
+    if (!form) {
+        console.error('Form not found');
+        return;
+    }
+    
+    if (choice === 'yes') {
+        // Set the radio button to include automatic transmission extension
+        const dodatekAvtMenjRadio = form.querySelector('input[name="dodatek_avt_menj"][value="1"]');
+        if (dodatekAvtMenjRadio) {
+            dodatekAvtMenjRadio.checked = true;
+        }
+        
+        // Show success message
+        const successMsg = document.createElement('div');
+        successMsg.className = 'alert alert-success';
+        successMsg.innerHTML = '<i class="fa fa-check"></i> Dodatek avtomatski menjalnik vključen v jamstvo.';
+        
+        // Insert the message before the modal
+        const modal = document.querySelector('.avt-menj-extension-dialog');
+        if (modal) {
+            modal.parentNode.insertBefore(successMsg, modal);
+            // Remove the modal
+            modal.remove();
+        }
+        
+        // Clear the session data by making a request to clear it
+		/*
+        const clearForm = document.createElement('form');
+        clearForm.method = 'POST';
+        clearForm.action = window.location.href;
+        
+        const csrfToken = document.querySelector('input[name="_token"]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = csrfToken;
+        clearForm.appendChild(csrfInput);
+        
+        // Add a flag to clear the modal data
+        const clearInput = document.createElement('input');
+        clearInput.type = 'hidden';
+        clearInput.name = 'clear_avt_menj_modal';
+        clearInput.value = '1';
+        clearForm.appendChild(clearInput);
+        
+        document.body.appendChild(clearForm);
+        clearForm.submit();
+        */
+    } else {
+        // User chose "NO" - show warning and clear session
+        //const warningMsg = document.createElement('div');
+        //warningMsg.className = 'alert alert-warning';
+        //warningMsg.innerHTML = '<i class="fa fa-exclamation-triangle"></i> Jamstvo ni bilo aktivirano. Vozilo presega maksimalno kilometrino.';
+        
+        // Insert the message before the modal
+        const modal = document.querySelector('.avt-menj-extension-dialog');
+        if (modal) {
+            //modal.parentNode.insertBefore(warningMsg, modal);
+            // Remove the modal
+            modal.remove();
+        }
+        
+        // Clear the session data by making a request to clear it
+		/*
+        const clearForm = document.createElement('form');
+        clearForm.method = 'POST';
+        clearForm.action = window.location.href;
+        
+        const csrfToken = document.querySelector('input[name="_token"]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = csrfToken;
+        clearForm.appendChild(csrfInput);
+        
+        // Add a flag to clear the modal data
+        const clearInput = document.createElement('input');
+        clearInput.type = 'hidden';
+        clearInput.name = 'clear_avt_menj_modal';
+        clearInput.value = '1';
+        clearForm.appendChild(clearInput);
+        
+        document.body.appendChild(clearForm);
+        clearForm.submit();
+		*/
+    }
+}
 </script>
  	<script src="{{ asset('js/vnos-aktivacija.js') }}" defer=""></script>
  
@@ -426,7 +537,8 @@ function handleKmExtension(choice) {
 
 @push('styles')
 <style>
-.km-extension-dialog {
+.km-extension-dialog,
+.avt-menj-extension-dialog {
     border: 2px solid #ffc107;
     background-color: #fff3cd;
     padding: 20px;
@@ -435,26 +547,30 @@ function handleKmExtension(choice) {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.km-extension-dialog h5 {
+.km-extension-dialog h5,
+.avt-menj-extension-dialog h5 {
     color: #856404;
     margin-bottom: 15px;
     font-weight: 600;
 }
 
-.km-extension-dialog p {
+.km-extension-dialog p,
+.avt-menj-extension-dialog p {
     font-size: 16px;
     margin-bottom: 10px;
     color: #856404;
 }
 
-.km-extension-dialog .question {
+.km-extension-dialog .question,
+.avt-menj-extension-dialog .question {
     font-size: 16px;
     margin-bottom: 20px;
     color: #856404;
     font-weight: bold;
 }
 
-.km-extension-dialog .btn {
+.km-extension-dialog .btn,
+.avt-menj-extension-dialog .btn {
     font-size: 16px;
     padding: 12px 24px;
     border-radius: 6px;
@@ -462,17 +578,20 @@ function handleKmExtension(choice) {
     transition: all 0.3s ease;
 }
 
-.km-extension-dialog .btn:hover {
+.km-extension-dialog .btn:hover,
+.avt-menj-extension-dialog .btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.km-extension-dialog .btn-success {
+.km-extension-dialog .btn-success,
+.avt-menj-extension-dialog .btn-success {
     background-color: #28a745;
     border-color: #28a745;
 }
 
-.km-extension-dialog .btn-danger {
+.km-extension-dialog .btn-danger,
+.avt-menj-extension-dialog .btn-danger {
     background-color: #dc3545;
     border-color: #dc3545;
 }
