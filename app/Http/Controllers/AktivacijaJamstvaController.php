@@ -79,7 +79,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         $userId = Auth::user()->id; 
  
         $view_name = 'aktivacija-dodaj';
-        if ($userId == 1 || $userId == 5 || $userId == 18 ) {
+        if ($this->isTestUser()) {
             $tipiJamstev = JamstvoTip::where('koda', 'not like', "%PK%")->where('naziv', 'not like', "%SUPREMA%")->orderBy('naziv', 'ASC')->get(); 
             $view_name = 'aktivacija-dodaj-new';
         }
@@ -140,7 +140,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
 
 
         $view_name = 'aktivacija-dodaj';
-        if ($userId == 1 || $userId == 5 || $userId == 18 ) {
+        if ($this->isTestUser()) {
             $tipiJamstev = JamstvoTip::where('koda', 'not like', "%PK%")->where('naziv', 'not like', "%SUPREMA%")->orderBy('naziv', 'ASC')->get(); 
             $view_name = 'aktivacija-dodaj-new';
         }
@@ -237,7 +237,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         $aktivacije = KarticaVozila::get();
         foreach ($aktivacije as $a) {                
             try {
-                   $response = $client->get('http://192.168.111.11/api/PogodbeZakupljene?idAvtohise='.$sifra_avtohise);
+                   $response = $client->get(config('api.move.base_url') . config('api.endpoints.pogodbe_zakupljene') . '?idAvtohise=' . $sifra_avtohise);
             }
             catch (RequestException $e) {
                     $response = $e->getResponse();
@@ -259,7 +259,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         $aktivacije = KarticaVozila::get();
         foreach ($aktivacije as $a) {                
             try {
-                   $response = $client->get('http://192.168.111.11/api/OznakaKarticeJamstva?tip='.$tip);
+                   $response = $client->get(config('api.move.base_url') . config('api.endpoints.oznaka_kartice') . '?tip=' . $tip);
             }
             catch (RequestException $e) {
                     $response = $e->getResponse();
@@ -278,6 +278,17 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
     {
          $stevec = PogodbaStevec::GetStevec();
          return 'WEB-'.$stevec;
+    }
+
+    /**
+     * Check if the current user is a test user
+     * 
+     * @return bool
+     */
+    private function isTestUser()
+    {
+        $userId = Auth::user()->id;
+        return in_array($userId, [10, 5, 18]);
     }
 
     /**
@@ -399,7 +410,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         }
       
         $userId = Auth::user()->id; 
-        if ($userId == 1 || $userId == 5 || $userId == 18 ) {
+        if ($this->isTestUser()) {
             $errors = $this->validateWarrantyConditions($request);
             if (count($errors) > 0) {
                 return redirect($request->path())
@@ -525,7 +536,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         }
 
         $userId = Auth::user()->id; 
-        if ($userId == 1 || $userId == 5 || $userId == 18 ) {
+        if ($this->isTestUser()) {
 
             $errors = $this->validateWarrantyConditions($request);
 
@@ -601,10 +612,10 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         $a = KarticaVozila::find($id);
 
           
-        try {
-               $response = $client->post('http://192.168.111.11/api/KarticeVozil', [
-                            RequestOptions::JSON => $a
-                        ]);
+                try {
+                $response = $client->post(config('api.move.base_url') . config('api.endpoints.kartice_vozil'), [
+                             RequestOptions::JSON => $a
+                         ]);
         }
         catch (RequestException $e) {
                 $response = $e->getResponse();
@@ -621,8 +632,8 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         $msg = 'Oddaja uspešna!';
 
         // osveži status
-        try {                   
-               $response = $client->get('http://192.168.111.11/api/JamstvoStatus/'.$a->id);
+                try {                   
+                $response = $client->get(config('api.move.base_url') . config('api.endpoints.jamstvo_status') . '/' . $a->id);
         }
         catch (RequestException $e) {
                 $response = $e->getResponse();

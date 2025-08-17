@@ -47,7 +47,7 @@ class cronUpdateStatus extends Command
         $aktivacije = KarticaVozila::where('status', '!=', 0)->get();
         foreach ($aktivacije as $a) {                
             try {
-                    $response = $client->get('http://192.168.111.11/api/KarticeVozil/'.$a->id);                   
+                    $response = $client->get(config('api.move.base_url') . config('api.endpoints.kartice_vozil') . '/' . $a->id);                   
             }
             catch (RequestException $e) {
                     $response = $e->getResponse();
@@ -73,7 +73,7 @@ class cronUpdateStatus extends Command
         $aktivacije = KarticaVozila::get();
         foreach ($aktivacije as $a) {                
             try {                   
-                   $response = $client->get('http://192.168.111.11/api/JamstvoStatus/'.$a->id);
+                   $response = $client->get(config('api.move.base_url') . config('api.endpoints.jamstvo_status') . '/' . $a->id);
             }
             catch (RequestException $e) {
                     $response = $e->getResponse();

@@ -436,7 +436,7 @@ class ApiAktivacijaJamstvaController extends Controller
         $client = new Client();
                         
         try {
-               $response = $client->get('http://192.168.111.11/api/PaketiVozilo?km='.$km.'&ccm='.$ccm.'&starost='.$starost.'&id_stranke='.$id_stranke);
+               $response = $client->get(config('api.move.base_url') . config('api.endpoints.paketi_vozilo') . '?km=' . $km . '&ccm=' . $ccm . '&starost=' . $starost . '&id_stranke=' . $id_stranke);
         }
         catch (RequestException $e) {
                 $response = $e->getResponse();                

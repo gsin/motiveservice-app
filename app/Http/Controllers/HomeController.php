@@ -62,13 +62,24 @@ class HomeController extends Controller
 
         $optima_care_visible = true;
         
-        if ($userId == 1 || $userId == 5 || $userId == 18 ) {
+        if ($this->isTestUser()) {
             return view('home-new', [ "oznake" => $oznake, "optima_care_visible" => $optima_care_visible ]);
         }
         else {
             return view('home', [ "oznake" => $oznake, "optima_care_visible" => $optima_care_visible ]);
         }
  
+    }
+
+    /**
+     * Check if the current user is a test user
+     * 
+     * @return bool
+     */
+    private function isTestUser()
+    {
+        $userId = Auth::user()->id;
+        return in_array($userId, [10, 5, 18]);
     }
 
     public function getPredzakupljeneWS($sifra_avtohise)
