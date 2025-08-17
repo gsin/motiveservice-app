@@ -256,16 +256,16 @@
 		<p style="text-align: justify">Skladno z navedbami v priloženih Splošnih pogojih koordinaciji &raquo;Storitve upravljanega jamstva&laquo; in Zakonom o varstvu osebnih podatkov (ZVOP), Ur.l. 94/2007, 16.10.2007, dovoljujem obdelovanje osebnih podatkov s strani nosilca za obdelovanje podatkov ali tretjih družb in podjetij, pooblaščenih s strani nosilca, ob upoštevanju načina in namenov, navedenih v naslednjih točkah Splošnih pogojev:</p>
 	</div>
 	 
-   	<div class="form-group">
- 
-	   <button type="submit" class="btn btn-success">Shrani</button>
- 		
- 		@if($errors->any())
- 			<button type="button" class="btn btn-warning" onclick="submitWithOverride()">Shrani kljub napakam</button>	
- 	    @endif
- 
- 		
- 	    <span style="flex: 3"></span>
+	<div class="form-group">
+  
+  		@if($errors->any())
+  			<button type="button" class="btn btn-warning" onclick="submitWithOverride()">Shrani kljub napakam</button>	
+  	    @else
+  			<button type="submit" class="btn btn-success">Shrani</button>
+  	    @endif
+  
+  		
+  	    <span style="flex: 3"></span>
  
 	    @if ($urejanje == true)
 	    	@if ($k->status == 0)

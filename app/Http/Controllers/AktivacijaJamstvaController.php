@@ -845,7 +845,7 @@ $aktivacije = KarticaVozila::where('userid', Auth::user()->id)->get()->sortByDes
         $kartica->fill($k);
         $kartica->save();
         
-        $request->session()->flash('flash_ok', 'Jamstvo uspešno posodobljeno kljub prekršenim pogojem. Razlog: ' . $request->opomba);
+        $request->session()->flash('flash_ok', 'Jamstvo posodobljeno kljub neustreznim pogojem. Razlog: ' . $request->opomba);
         return redirect('/aktivacija-jamstva');        
     }
 }
